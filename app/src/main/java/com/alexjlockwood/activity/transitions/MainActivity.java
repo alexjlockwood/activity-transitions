@@ -1,10 +1,13 @@
 package com.alexjlockwood.activity.transitions;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.SharedElementCallback;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.squareup.picasso.Picasso;
 
@@ -21,8 +26,9 @@ import java.util.Map;
 import static com.alexjlockwood.activity.transitions.Constants.ALBUM_IMAGE_URLS;
 import static com.alexjlockwood.activity.transitions.Constants.ALBUM_NAMES;
 
-public class MainActivity extends Activity {
-    private static final String TAG = MainActivity.class.getSimpleName();
+
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = MainActivity.class.getSimpleName()+"Test";
     private static final boolean DEBUG = false;
 
     static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
@@ -31,54 +37,83 @@ public class MainActivity extends Activity {
     private RecyclerView mRecyclerView;
     private Bundle mTmpReenterState;
     private boolean mIsDetailsActivityStarted;
+    public static int thumbWidth = 0;
+    private CardAdapter mCardAdapter;
+    RadioGroup mRadioGroup;
+    RadioButton mRadioButton1,mRadioButton2;
+    private boolean isImageMode = true; //是图片模式还是文章模式
 
-    private final SharedElementCallback mCallback = new SharedElementCallback() {
-        @Override
-        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
-            if (mTmpReenterState != null) {
-                int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
-                int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
-                if (startingPosition != currentPosition) {
-                    // If startingPosition != currentPosition the user must have swiped to a
-                    // different page in the DetailsActivity. We must update the shared element
-                    // so that the correct one falls into place.
-                    String newTransitionName = ALBUM_NAMES[currentPosition];
-                    View newSharedElement = mRecyclerView.findViewWithTag(newTransitionName);
-                    if (newSharedElement != null) {
-                        names.clear();
-                        names.add(newTransitionName);
-                        sharedElements.clear();
-                        sharedElements.put(newTransitionName, newSharedElement);
+    /**
+     * 初始化共享
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void initExitShare(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            SharedElementCallback mCallback = new SharedElementCallback() {
+                @Override
+                public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+                    //返回进入 动画
+                    if (mTmpReenterState != null) {
+                        int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
+                        int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+                        if (startingPosition != currentPosition) {
+                            // If startingPosition != currentPosition the user must have swiped to a
+                            // different page in the DetailsActivity. We must update the shared element
+                            // so that the correct one falls into place.
+                            String newTransitionName = ALBUM_NAMES[currentPosition];
+                            View newSharedElement = mRecyclerView.findViewWithTag(newTransitionName);
+                            if (newSharedElement != null) {
+                                names.clear();
+                                names.add(newTransitionName);
+                                sharedElements.clear();
+                                sharedElements.put(newTransitionName, newSharedElement);
+                            }
+                        }
+
+                        mTmpReenterState = null;
+                    } else { //退出动画
+                        // If mTmpReenterState is null, then the activity is exiting.
+                        View navigationBar = findViewById(android.R.id.navigationBarBackground);
+                        View statusBar = findViewById(android.R.id.statusBarBackground);
+                        if (navigationBar != null) {
+                            names.add(navigationBar.getTransitionName());
+                            sharedElements.put(navigationBar.getTransitionName(), navigationBar);
+                        }
+                        if (statusBar != null) {
+                            names.add(statusBar.getTransitionName());
+                            sharedElements.put(statusBar.getTransitionName(), statusBar);
+                        }
                     }
                 }
+            };
 
-                mTmpReenterState = null;
-            } else {
-                // If mTmpReenterState is null, then the activity is exiting.
-                View navigationBar = findViewById(android.R.id.navigationBarBackground);
-                View statusBar = findViewById(android.R.id.statusBarBackground);
-                if (navigationBar != null) {
-                    names.add(navigationBar.getTransitionName());
-                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
-                }
-                if (statusBar != null) {
-                    names.add(statusBar.getTransitionName());
-                    sharedElements.put(statusBar.getTransitionName(), statusBar);
-                }
-            }
+            setExitSharedElementCallback(mCallback);
         }
-    };
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        setExitSharedElementCallback(mCallback);
+        thumbWidth = this.getResources().getDisplayMetrics().widthPixels / 3;
+        initExitShare();
+        setContentView(R.layout.activity_main_test);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setLayoutManager(new GridLayoutManager(this,
                 getResources().getInteger(R.integer.activity_main_num_grid_columns)));
-        mRecyclerView.setAdapter(new CardAdapter());
+        mCardAdapter = new CardAdapter();
+        mRecyclerView.setAdapter(mCardAdapter);
+
+        mRadioGroup = (RadioGroup)this.findViewById(R.id.radioGroup);
+        mRadioButton1 = (RadioButton)this.findViewById(R.id.radioButton_article);
+        mRadioButton2 = (RadioButton) findViewById(R.id.radioButton_image);
+        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                isImageMode = mRadioButton2.getId() == checkedId;
+            }
+        });
     }
 
     @Override
@@ -87,6 +122,7 @@ public class MainActivity extends Activity {
         mIsDetailsActivityStarted = false;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onActivityReenter(int requestCode, Intent data) {
         super.onActivityReenter(requestCode, data);
@@ -107,6 +143,9 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
+
+        mCardAdapter.notifyDataSetChanged();
+
     }
 
     private class CardAdapter extends RecyclerView.Adapter<CardHolder> {
@@ -139,26 +178,53 @@ public class MainActivity extends Activity {
         public CardHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+
+            //重置尺寸
+            ViewGroup.LayoutParams lp = itemView.getLayoutParams();
+            lp.width  = thumbWidth ;
+            lp.height = thumbWidth;
+            itemView.setLayoutParams(lp);
+
+
             mAlbumImage = (ImageView) itemView.findViewById(R.id.main_card_album_image);
+
         }
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         public void bind(int position) {
             Picasso.with(MainActivity.this).load(ALBUM_IMAGE_URLS[position]).into(mAlbumImage);
-            mAlbumImage.setTransitionName(ALBUM_NAMES[position]);
+            if(Utils.isLOLLIPOP())
+                mAlbumImage.setTransitionName(ALBUM_NAMES[position]);
+
             mAlbumImage.setTag(ALBUM_NAMES[position]);
             mAlbumPosition = position;
         }
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onClick(View v) {
             // TODO: is there a way to prevent user from double clicking and starting activity twice?
-            Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+            Intent intent = null;
+            if(isImageMode){
+                 intent = new Intent(MainActivity.this, PreviewActivity.class);
+            }
+            else{
+                 intent = new Intent(MainActivity.this, DetailsActivity.class);
+            }
+
             intent.putExtra(EXTRA_STARTING_ALBUM_POSITION, mAlbumPosition);
 
             if (!mIsDetailsActivityStarted) {
                 mIsDetailsActivityStarted = true;
-                startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        mAlbumImage, mAlbumImage.getTransitionName()).toBundle());
+                if(Utils.isLOLLIPOP()){
+                    startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                            mAlbumImage, mAlbumImage.getTransitionName()).toBundle());
+//                    startActivity(intent, ActivityOptions.makeScaleUpAnimation(mAlbumImage,mAlbumImage.getWidth()/2,mAlbumImage.getHeight()/2,0,0).toBundle());
+                }
+                else{
+                    startActivity(intent);
+                }
+
             }
         }
     }

@@ -1,12 +1,14 @@
 <resources>
 
     <style name="AppTheme.Main" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
     </style>
 
     <style name="AppTheme.Preview" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
@@ -17,9 +19,14 @@
              shift from black to translucent status bar while adding the status bar bg
              as a shared element. -->
         <!--<item name="android:windowTranslucentStatus">true</item>-->
+        <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:windowNoTitle">true</item>
+        <!-- 指定界面进入/退出动画效果 -->
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
+        <!-- 指定共享元素进入/退出的动画效果 -->
+        <item name="android:windowEnterTransition">@transition/details_window_enter_transition</item>
+        <item name="android:windowReturnTransition">@transition/details_window_return_transition</item>
     </style>
 
 </resources>

@@ -18,6 +18,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PreviewActivity" android:theme="@style/AppTheme.Preview"/>
         <activity
             android:name="com.alexjlockwood.activity.transitions.DetailsActivity"
             android:label="@string/app_name"

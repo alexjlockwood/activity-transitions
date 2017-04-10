@@ -1,14 +1,18 @@
 package com.alexjlockwood.activity.transitions;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SharedElementCallback;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -19,8 +23,8 @@ import java.util.Map;
 import static com.alexjlockwood.activity.transitions.Constants.ALBUM_IMAGE_URLS;
 import static com.alexjlockwood.activity.transitions.MainActivity.EXTRA_CURRENT_ALBUM_POSITION;
 import static com.alexjlockwood.activity.transitions.MainActivity.EXTRA_STARTING_ALBUM_POSITION;
-
-public class DetailsActivity extends Activity {
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+public class DetailsActivity extends AppCompatActivity {
     private static final String TAG = DetailsActivity.class.getSimpleName();
     private static final boolean DEBUG = false;
 
@@ -87,13 +91,26 @@ public class DetailsActivity extends Activity {
     }
 
     @Override
+    public void onBackPressed() {
+        Log.d("DetailsActivity","onBackPressed");
+        super.onBackPressed();
+    }
+
+    @Override
     public void finishAfterTransition() {
+        Log.d("DetailsActivity","finishAfterTransition");
         mIsReturning = true;
         Intent data = new Intent();
         data.putExtra(EXTRA_STARTING_ALBUM_POSITION, mStartingPosition);
         data.putExtra(EXTRA_CURRENT_ALBUM_POSITION, mCurrentPosition);
         setResult(RESULT_OK, data);
         super.finishAfterTransition();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("DetailsActivity","onDestroy");
     }
 
     private class DetailsFragmentPagerAdapter extends FragmentStatePagerAdapter {

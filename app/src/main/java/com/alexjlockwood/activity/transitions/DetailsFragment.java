@@ -71,7 +71,7 @@ public class DetailsFragment extends Fragment {
 
         mAlbumImage = (ImageView) rootView.findViewById(R.id.details_album_image);
         final ImageView backgroundImage = (ImageView) rootView.findViewById(R.id.details_background_image);
-
+        mAlbumImage.setScaleType(ImageView.ScaleType.FIT_XY);
         View textContainer = rootView.findViewById(R.id.details_text_container);
         TextView albumTitleText = (TextView) textContainer.findViewById(R.id.details_album_title);
 
