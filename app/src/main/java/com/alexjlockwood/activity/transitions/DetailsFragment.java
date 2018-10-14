@@ -103,7 +103,7 @@ public class DetailsFragment extends Fragment {
         return rootView;
     }
 
-    private void startPostponedEnterTransition() {
+    public void startPostponedEnterTransition() {
         if (mAlbumPosition == mStartingPosition) {
             mAlbumImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 @Override
